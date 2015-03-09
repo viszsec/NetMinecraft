@@ -204,7 +204,7 @@ then
   NUMOFLINES_BEFORE=$(wc -l < "$OUTPUT_FILE")
   echo "[*] Extracting FTP data..."
   echo "[*] Extracting logins and uploads..."
-  tshark -n -2 -r "$PCAP_FILE" -T fields -E header=n -E separator=, -E occurrence=a -e ftp.request.arg -R 'ftp.request.command=="STOR" || ftp.request.command=="USER"' | sort | uniq -i >> "$OUTPUT_FILE"
+  tshark -n -2 -r "$PCAP_FILE" -T fields -E header=n -E separator=, -E occurrence=a -E aggregator=\| -e ftp.request.arg -R 'ftp.request.command=="STOR" || ftp.request.command=="USER"' | sort | uniq -i >> "$OUTPUT_FILE"
   NUMOFLINES_AFTER=$(wc -l < "$OUTPUT_FILE")
   NEWDATA=$(($NUMOFLINES_AFTER-$NUMOFLINES_BEFORE))
   echo "[+] Extraction completed. $NEWDATA line(s) added to $OUTPUT_FILE."
@@ -247,7 +247,7 @@ if [ "$PROTOCOL" = "mail" ] || [ "$PROTOCOL" = "all" ];
 then
   NUMOFLINES_BEFORE=$(wc -l < "$OUTPUT_FILE")
   echo "[*] Extracting email addresses from mail traffic..."
-tshark -n -2 -r "$PCAP_FILE" -T fields -E header=y -E separator=, -E occurrence=a -E aggregator =\| -e smtp.req.parameter -R 'smtp.req.command=="RCPT" || smtp.req.command=="MAIL"' | sort | uniq -i >> "$OUTPUT_FILE"
+tshark -n -2 -r "$PCAP_FILE" -T fields -E header=y -E separator=, -E occurrence=a -E aggregator=\| -e smtp.req.parameter -R 'smtp.req.command=="RCPT" || smtp.req.command=="MAIL"' | sort | uniq -i >> "$OUTPUT_FILE"
   NUMOFLINES_AFTER=$(wc -l < "$OUTPUT_FILE")
   NEWDATA=$(($NUMOFLINES_AFTER-$NUMOFLINES_BEFORE))
   echo "[+] Extraction completed. $NEWDATA line(s) added to $OUTPUT_FILE."
@@ -260,7 +260,7 @@ if [ "$PROTOCOL" = "ssl" ] || [ "$PROTOCOL" = "all" ];
 then
   NUMOFLINES_BEFORE=$(wc -l < "$OUTPUT_FILE")
   echo "[*] Extracting SSL certificates..."
-  tshark -n -r "$PCAP_FILE" "ssl.handshake.certificate" -T fields -E header=y -E separator=, -E occurrence=a -E aggregator =\| -e x509sat.CountryName -ex509sat.IA5String -e x509.printableString -e x509sat.teletexString -e x509sat.UTF8String -e x509sat.universalString | sort | uniq >> "$OUTPUT_FILE"
+  tshark -n -2 -r "$PCAP_FILE" -R 'ssl.handshake.certificate' -T fields -E header=y -E separator=, -E occurrence=a -E aggregator=\| -e x509sat.CountryName -ex509sat.IA5String -e x509.printableString -e x509sat.teletexString -e x509sat.UTF8String -e x509sat.universalString | sort | uniq -i >> "$OUTPUT_FILE"
   NUMOFLINES_AFTER=$(wc -l < "$OUTPUT_FILE")
   NEWDATA=$(($NUMOFLINES_AFTER-$NUMOFLINES_BEFORE))
   echo "[+] Extraction completed. $NEWDATA line(s) added to $OUTPUT_FILE."
